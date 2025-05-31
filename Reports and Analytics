@@ -1,0 +1,105 @@
+<!-- Centralized Hospital Management System with Authentication, Doctor Management, Prescriptions, Appointments, and Role-Based Dashboards -->
+
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+</head>
+<body>
+  <h2>Login</h2>
+  <form action="login.php" method="POST">
+    <label>Username: <input type="text" name="username" required></label><br>
+    <label>Password: <input type="password" name="password" required></label><br>
+    <label>Role:
+      <select name="role">
+        <option value="admin">Admin</option>
+        <option value="doctor">Doctor</option>
+        <option value="patient">Patient</option>
+      </select>
+    </label><br>
+    <button type="submit">Login</button>
+  </form>
+</body>
+</html>
+
+<!-- login.php -->
+<?php
+session_start();
+$conn = new mysqli('localhost', 'root', '', 'hospital_db');
+
+$username = $_POST['username'];
+$password = $_POST['password'];
+$role = $_POST['role'];
+
+$stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND password = ? AND role = ?");
+$stmt->bind_param("sss", $username, $password, $role);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 1) {
+    $_SESSION['username'] = $username;
+    $_SESSION['role'] = $role;
+    header("Location: dashboard.php");
+} else {
+    echo "<p>Invalid credentials</p><a href='login.html'>Try again</a>";
+}
+?>
+
+<!-- logout.php -->
+<?php
+session_start();
+session_destroy();
+header("Location: login.html");
+?>
+
+<!-- dashboard.php -->
+<?php
+session_start();
+if (!isset($_SESSION['username'])) {
+  header("Location: login.html");
+  exit();
+}
+$role = $_SESSION['role'];
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+</head>
+<body>
+  <h1>Welcome <?php echo ucfirst($role); ?></h1>
+  <nav>
+    <?php if ($role === 'admin') { ?>
+      <a href="add_patient.html">Add Patient</a> |
+      <a href="view_patients.php">View Patients</a> |
+      <a href="add_doctor.html">Add Doctor</a> |
+      <a href="view_doctors.php">View Doctors</a> |
+      <a href="add_prescription.html">Add Prescription</a> |
+      <a href="view_prescriptions.php">View Prescriptions</a> |
+      <a href="add_appointment.html">Schedule Appointment</a> |
+      <a href="view_appointments.php">View Appointments</a>
+    <?php } elseif ($role === 'doctor') { ?>
+      <a href="view_patients.php">View Patients</a> |
+      <a href="add_prescription.html">Add Prescription</a> |
+      <a href="view_prescriptions.php">View Prescriptions</a>
+    <?php } elseif ($role === 'patient') { ?>
+      <a href="view_appointments.php">View Appointments</a> |
+      <a href="view_prescriptions.php">View Prescriptions</a>
+    <?php } ?>
+    | <a href="logout.php">Logout</a>
+  </nav>
+</body>
+</html>
+
+<!-- Updated Database Schema Addition -->
+-- CREATE TABLE users (
+--   id INT AUTO_INCREMENT PRIMARY KEY,
+--   username VARCHAR(50),
+--   password VARCHAR(255),
+--   role ENUM('admin','doctor','patient')
+-- );
+
+<!-- Existing content remains the same (prescriptions, appointments, etc.) -->
