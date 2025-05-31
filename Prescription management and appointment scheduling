@@ -1,0 +1,158 @@
+<!-- Centralized Hospital Management System with Authentication, Doctor Management, Prescriptions, Appointments -->
+
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Hospital Management Dashboard</h1>
+  <nav>
+    <a href="add_patient.html">Add Patient</a> |
+    <a href="view_patients.php">View Patients</a> |
+    <a href="add_doctor.html">Add Doctor</a> |
+    <a href="view_doctors.php">View Doctors</a> |
+    <a href="add_prescription.html">Add Prescription</a> |
+    <a href="view_prescriptions.php">View Prescriptions</a> |
+    <a href="add_appointment.html">Schedule Appointment</a> |
+    <a href="view_appointments.php">View Appointments</a> |
+    <a href="logout.php">Logout</a>
+  </nav>
+</body>
+</html>
+
+<!-- add_prescription.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Prescription</title>
+</head>
+<body>
+  <h2>Add Prescription</h2>
+  <form action="add_prescription.php" method="POST">
+    <label>Patient ID: <input type="number" name="patient_id" required></label><br>
+    <label>Doctor ID: <input type="number" name="doctor_id" required></label><br>
+    <label>Notes: <textarea name="notes" required></textarea></label><br>
+    <button type="submit">Add Prescription</button>
+  </form>
+</body>
+</html>
+
+<!-- add_prescription.php -->
+<?php
+$conn = new mysqli('localhost', 'root', '', 'hospital_db');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $patient_id = $_POST['patient_id'];
+    $doctor_id = $_POST['doctor_id'];
+    $notes = $_POST['notes'];
+
+    $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, doctor_id, notes, date) VALUES (?, ?, ?, NOW())");
+    $stmt->bind_param("iis", $patient_id, $doctor_id, $notes);
+    $stmt->execute();
+
+    echo "<p>Prescription added!</p><a href='index.html'>Back</a>";
+}
+?>
+
+<!-- view_prescriptions.php -->
+<?php
+$conn = new mysqli('localhost', 'root', '', 'hospital_db');
+$result = $conn->query("SELECT * FROM prescriptions");
+
+echo "<h2>Prescriptions</h2><table border='1'><tr><th>ID</th><th>Patient ID</th><th>Doctor ID</th><th>Notes</th><th>Date</th></tr>";
+while ($row = $result->fetch_assoc()) {
+    echo "<tr><td>{$row['id']}</td><td>{$row['patient_id']}</td><td>{$row['doctor_id']}</td><td>{$row['notes']}</td><td>{$row['date']}</td></tr>";
+}
+echo "</table><br><a href='index.html'>Back</a>";
+?>
+
+<!-- add_appointment.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Schedule Appointment</title>
+</head>
+<body>
+  <h2>Schedule Appointment</h2>
+  <form action="add_appointment.php" method="POST">
+    <label>Patient ID: <input type="number" name="patient_id" required></label><br>
+    <label>Doctor ID: <input type="number" name="doctor_id" required></label><br>
+    <label>Date & Time: <input type="datetime-local" name="appointment_time" required></label><br>
+    <button type="submit">Schedule</button>
+  </form>
+</body>
+</html>
+
+<!-- add_appointment.php -->
+<?php
+$conn = new mysqli('localhost', 'root', '', 'hospital_db');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $patient_id = $_POST['patient_id'];
+    $doctor_id = $_POST['doctor_id'];
+    $time = $_POST['appointment_time'];
+
+    $stmt = $conn->prepare("INSERT INTO appointments (patient_id, doctor_id, appointment_time) VALUES (?, ?, ?)");
+    $stmt->bind_param("iis", $patient_id, $doctor_id, $time);
+    $stmt->execute();
+
+    echo "<p>Appointment scheduled!</p><a href='index.html'>Back</a>";
+}
+?>
+
+<!-- view_appointments.php -->
+<?php
+$conn = new mysqli('localhost', 'root', '', 'hospital_db');
+$result = $conn->query("SELECT * FROM appointments");
+
+echo "<h2>Appointments</h2><table border='1'><tr><th>ID</th><th>Patient ID</th><th>Doctor ID</th><th>Date & Time</th></tr>";
+while ($row = $result->fetch_assoc()) {
+    echo "<tr><td>{$row['id']}</td><td>{$row['patient_id']}</td><td>{$row['doctor_id']}</td><td>{$row['appointment_time']}</td></tr>";
+}
+echo "</table><br><a href='index.html'>Back</a>";
+?>
+
+<!-- Updated Database Schema (MySQL) -->
+-- CREATE DATABASE hospital_db;
+-- USE hospital_db;
+-- CREATE TABLE users (
+--   id INT AUTO_INCREMENT PRIMARY KEY,
+--   username VARCHAR(50),
+--   password VARCHAR(255)
+-- );
+
+-- CREATE TABLE patients (
+--   id INT AUTO_INCREMENT PRIMARY KEY,
+--   name VARCHAR(100),
+--   age INT,
+--   gender VARCHAR(10),
+--   disease VARCHAR(100)
+-- );
+
+-- CREATE TABLE doctors (
+--   id INT AUTO_INCREMENT PRIMARY KEY,
+--   name VARCHAR(100),
+--   specialization VARCHAR(100)
+-- );
+
+-- CREATE TABLE prescriptions (
+--   id INT AUTO_INCREMENT PRIMARY KEY,
+--   patient_id INT,
+--   doctor_id INT,
+--   notes TEXT,
+--   date DATETIME
+-- );
+
+-- CREATE TABLE appointments (
+--   id INT AUTO_INCREMENT PRIMARY KEY,
+--   patient_id INT,
+--   doctor_id INT,
+--   appointment_time DATETIME
+-- );
