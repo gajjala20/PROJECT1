@@ -1,0 +1,89 @@
+<!-- Centralized Hospital Management System - Basic Version -->
+
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Hospital Management Dashboard</h1>
+  <nav>
+    <a href="add_patient.html">Add Patient</a> |
+    <a href="view_patients.php">View Patients</a>
+  </nav>
+</body>
+</html>
+
+<!-- add_patient.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Patient</title>
+</head>
+<body>
+  <h2>Register New Patient</h2>
+  <form action="add_patient.php" method="POST">
+    <label>Name: <input type="text" name="name" required></label><br>
+    <label>Age: <input type="number" name="age" required></label><br>
+    <label>Gender:
+      <select name="gender">
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+    </label><br>
+    <label>Disease: <input type="text" name="disease" required></label><br>
+    <button type="submit">Add Patient</button>
+  </form>
+</body>
+</html>
+
+<!-- add_patient.php -->
+<?php
+$host = 'localhost';
+$user = 'root';
+$pass = '';
+$db = 'hospital_db';
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'];
+    $age = $_POST['age'];
+    $gender = $_POST['gender'];
+    $disease = $_POST['disease'];
+
+    $stmt = $conn->prepare("INSERT INTO patients (name, age, gender, disease) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("siss", $name, $age, $gender, $disease);
+    $stmt->execute();
+
+    echo "<p>Patient added successfully!</p><a href='index.html'>Back to Dashboard</a>";
+}
+?>
+
+<!-- view_patients.php -->
+<?php
+$conn = new mysqli('localhost', 'root', '', 'hospital_db');
+$result = $conn->query("SELECT * FROM patients");
+
+echo "<h2>Patient List</h2><table border='1'><tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Disease</th></tr>";
+while ($row = $result->fetch_assoc()) {
+    echo "<tr><td>{$row['id']}</td><td>{$row['name']}</td><td>{$row['age']}</td><td>{$row['gender']}</td><td>{$row['disease']}</td></tr>";
+}
+echo "</table><br><a href='index.html'>Back</a>";
+?>
+
+<!-- Database Schema (MySQL) -->
+-- CREATE DATABASE hospital_db;
+-- USE hospital_db;
+-- CREATE TABLE patients (
+--   id INT AUTO_INCREMENT PRIMARY KEY,
+--   name VARCHAR(100),
+--   age INT,
+--   gender VARCHAR(10),
+--   disease VARCHAR(100)
+-- );
